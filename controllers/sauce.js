@@ -98,7 +98,7 @@ exports.addLike = (req, res, next) => {
       }
       if (req.body.like === -1) {
         if (!usersDisliked.includes(req.body.userId)) {
-          usersDisliked = [...usersLiked, req.body.userId];
+          usersDisliked = [...usersDisliked, req.body.userId];
           usersLiked = usersLiked.filter((user) => user !== req.body.userId);
         }
       }
