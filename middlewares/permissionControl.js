@@ -16,7 +16,11 @@ module.exports = (req, res, next) => {
       if (sauce.userId === userId) {
         next();
       } else {
-        throw "User ID non autorisé à modifier cette sauce";
+        throw res
+          .status(403)
+          .json({
+            error: error | "User ID non autorisé à modifier cette sauce",
+          });
       }
     })
     .catch((error) => {
