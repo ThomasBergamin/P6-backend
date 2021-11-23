@@ -15,8 +15,6 @@ exports.getAllSauces = (req, res, next) => {
 
 exports.createSauce = (req, res, next) => {
   const sauceObject = JSON.parse(req.body.sauce);
-  console.log(sauceObject);
-  console.log(sauceObject.manufacturer);
   const sauce = new Sauce({
     ...sauceObject,
     imageUrl: `${req.protocol}://${req.get("host")}/images/${
@@ -77,20 +75,27 @@ exports.deleteSauce = (req, res, next) => {
     .catch((error) => res.status(500).json({ error }));
 };
 
-exports.addLike = (req, res, next) => {
+exports.handleLike = (req, res, next) => {
   Sauce.findOne({ _id: req.params.id })
     .then((sauce) => {
       let usersLiked = [...sauce.usersLiked];
       let usersDisliked = [...sauce.usersDisliked];
-      if (req.body.like === 1) {
+      let likes = sauce.likes;
+      let dislikes = sauce.dislikes;
+
+      if (req.body.like == 1) {
         if (!usersLiked.includes(req.body.userId)) {
           usersLiked = [...usersLiked, req.body.userId];
+          likes++;
           usersDisliked = usersDisliked.filter(
             (user) => user !== req.body.userId
           );
         }
       }
       if (req.body.like === 0) {
+        usersLiked.includes(req.body.userId)
+          ? likes--
+          : usersDisliked.includes(req.body.userId) && dislikes--;
         usersLiked = usersLiked.filter((user) => user !== req.body.userId);
         usersDisliked = usersDisliked.filter(
           (user) => user !== req.body.userId
@@ -99,12 +104,13 @@ exports.addLike = (req, res, next) => {
       if (req.body.like === -1) {
         if (!usersDisliked.includes(req.body.userId)) {
           usersDisliked = [...usersDisliked, req.body.userId];
+          dislikes++;
           usersLiked = usersLiked.filter((user) => user !== req.body.userId);
         }
       }
       Sauce.updateOne(
         { _id: req.params.id },
-        { usersDisliked: usersDisliked, usersLiked: usersLiked }
+        { usersDisliked, usersLiked, likes, dislikes }
       )
         .then(() => res.status(200).json({ message: "Objet modifié !" }))
         .catch((error) => res.status(400).json({ error }));
